@@ -1,0 +1,38 @@
+create table registromascarascaptura (
+	id_datosmascarascaptura serial not null primary key,
+	registro text,
+	id_datos_campos int,
+	id_tipo_formulario int,
+	foreign key (id_tipo_formulario) references tipoformulario(id_tipo_formulario)
+);
+
+create or replace function sp_MostrarFormulario(v_id_tipo_formulario int)
+RETURNS TABLE(htmltag text)
+ LANGUAGE plpgsql
+	AS $function$
+		begin
+			return query
+					SELECT 
+						case
+							when tc.tag = 'input' 
+								then concat(
+									'<div class="', cc.cssclass, ' mb-2">'
+									'<label for="', dc.nombre_campo, '" class="col-12 text-center">', dc.titulo_campo, '</labe>'
+									'<', tc.tag, ' class="form-control" type="', tc.tipoinput ,'" ', 'name="', dc.nombre_campo, '" id="', dc.nombre_campo, '" id-cust="', dc.id_datos_campos, '">'
+									'</div>'
+								)
+							when tc.tag = 'textarea' 
+								then concat(
+									'<div class="', cc.cssclass, ' mb-2">'
+									'<label for="', dc.nombre_campo, '" class="col-12 text-center">', dc.titulo_campo, '</labe>'
+									'<', tc.tag, ' class="form-control" name="', dc.nombre_campo, '" id="', dc.nombre_campo, '" id-cust="', dc.id_datos_campos, '">','</', tc.tag, '>'
+									'</div>'
+								)
+						end as htmlTag
+					FROM datoscampos dc
+					LEFT JOIN tagscampos tc ON dc.id_tags_campos = tc.id_tags_campos
+					LEFT JOIN csscolumnas cc ON dc.id_css_columnas = cc.id_css_columnas
+					WHERE dc.id_tipo_formulario = 3 AND dc.id_tipo_formulario = v_id_tipo_formulario
+					order by dc.id_datos_campos asc;
+		end
+	$function$;

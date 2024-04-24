@@ -1,0 +1,71 @@
+/* Estilo para el encabezado de la tabla */
+#tablaFormularios_wrapper {
+    border: 2px solid black; /* Borde negro para la tabla */
+    border-radius: 10px; /* Redondeo de esquinas */
+    background-color: black;
+    color: white;
+}
+
+#tablaFormularios thead th {
+    background-color: black;
+    color: white;
+}
+
+/* Estilo para filas impares */
+#tablaFormularios tbody tr:nth-child(odd) {
+    background-color: #f2f2f2; /* Gris claro */
+}
+
+/* Estilo para filas pares */
+#tablaFormularios tbody tr:nth-child(even) {
+    background-color: white;
+}
+
+/* Estilo para las celdas */
+#tablaFormularios tbody td {
+    border: 1px solid #ddd; /* Borde gris para las celdas */
+    padding: 8px; /* Espaciado interno de las celdas */
+    color: black; /* Color de texto negro */
+}
+
+/* Estilo para las celdas del encabezado */
+#tablaFormularios thead td {
+    border: 1px solid #ddd; /* Borde gris para las celdas */
+    padding: 8px; /* Espaciado interno de las celdas */
+}
+
+/* Estilo para el encabezado de la tabla */
+#tablaCampos_wrapper {
+    border: 2px solid black; /* Borde negro para la tabla */
+    border-radius: 10px; /* Redondeo de esquinas */
+    background-color: black;
+    color: white;
+}
+
+#tablaCampos thead th {
+    background-color: black;
+    color: white;
+}
+
+/* Estilo para filas impares */
+#tablaCampos tbody tr:nth-child(odd) {
+    background-color: #f2f2f2; /* Gris claro */
+}
+
+/* Estilo para filas pares */
+#tablaCampos tbody tr:nth-child(even) {
+    background-color: white;
+}
+
+/* Estilo para las celdas */
+#tablaCampos tbody td {
+    border: 1px solid #ddd; /* Borde gris para las celdas */
+    padding: 8px; /* Espaciado interno de las celdas */
+    color: black; /* Color de texto negro */
+}
+
+/* Estilo para las celdas del encabezado */
+#tablaCampos thead td {
+    border: 1px solid #ddd; /* Borde gris para las celdas */
+    padding: 8px; /* Espaciado interno de las celdas */
+}

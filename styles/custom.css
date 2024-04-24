@@ -1,0 +1,52 @@
+/* @font-face {
+    font-family: 'Futura';
+    src: url(PONER URL);
+} */
+/* .btn-radius {
+    border-radius: 10px  !important;
+}
+
+.navlinkstyle {
+color: white !important;
+} */
+
+@font-face {
+    font-family: 'Futura';
+    src: url('../font/Futura.ttc');
+}
+
+@font-face {
+    font-family: 'Futura Bold';
+    src: url('../font/Futura/Bold/font.ttf');
+}
+
+.bt-color-secondary {
+    background-color: #E0E0E0  !important;
+    border-color: #E0E0E0 !important;
+    color: black !important;
+    font-family: 'Futura Bold', sans-serif !important;
+}
+
+.bt-outline-color-secondary {
+ background-color: none !important;
+ border-color:#E0E0E0 !important;
+ font-family: 'Futura Bold', sans-serif !important;
+}
+
+.btn-radius {
+    border-radius: 10px  !important;
+}
+
+.bt-color-primary {
+    background-color: #6E6E6E solid #6E6E6E!important;
+    font-family: 'Futura Bold', sans-serif !important;
+}
+
+.textstylegob {
+    font-family: 'Futura', sans-serif !important;
+    color: #000 !important;
+}
+
+.form-control-veda:focus {
+    box-shadow:  0px 0px 5px 1px #6E6E6E !important;
+}
