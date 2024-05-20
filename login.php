@@ -16,13 +16,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="./styles/custom.css">
     <link href="./dataTables/datatables.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
     <title>Mascaras captura</title>
 </head>
 
 <header>
-    <nav class="navbar navbar-expand-sm navbar-light bg-body-tertiary shadow-lg">
+    <nav class="navbar navbar-expand-sm navbar-light bg-body-tertiary shadow-lg bg-navbar">
         <div class="container-fluid">
             <img src="./img/logo_oficialia.jpg" alt="logo_oficilia_mayor" class="navbar-brand" width="20%">
             <h1>Gestión</h1>

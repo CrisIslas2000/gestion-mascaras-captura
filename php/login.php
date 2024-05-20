@@ -3,7 +3,7 @@
     if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         try {
 
-            $email = $_POST['email'];
+            $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL); // Sanitizar el correo electrónico
             $password = $_POST['password'];
             $camposVacios = array();
 
@@ -27,7 +27,7 @@
             }
 
             // Consulta para obtener el hash de la contraseña asociado al usuario
-            $sql = "SELECT cu.id_cat_user, cu.password_user, cu.nombre_completo, cu.id_cat_estructura, ce.nombre AS nombre_estructura 
+            $sql = "SELECT cu.id_cat_user, cu.password_user, cu.nombre_completo, cu.id_cat_estructura, ce.nombre AS nombre_estructura, cu.rol_user, cu.direccion_padre
             FROM cat_user cu
             INNER JOIN cat_estructuras ce ON ce.id_cat_estructura = cu.id_cat_estructura
             WHERE email_user = $1";
@@ -46,6 +46,12 @@
                     $_SESSION['nombre_estructura'] = $row['nombre_estructura'];
                     $_SESSION['id_cat_user'] = $row['id_cat_user'];
                     $_SESSION['email'] = $email;
+                    $_SESSION['rol'] = $row['rol_user'] ;
+                    $_SESSION['direccion_padre'] = $row['direccion_padre'];
+
+                    // Configurar la cookie de sesión con atributos de seguridad
+                    $session_name = session_name();
+                    setcookie($session_name, session_id(), null, '/', null, true, true); // HTTPOnly y Secure
 
                     header('Content-Type: application/json');
                     $data = array(
@@ -87,6 +93,5 @@
             );
             return;
         }
-    } 
-
+    }
 ?>

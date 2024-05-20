@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).done(function (data) {
             if (data.icon === 'success') {
                 // Redireccionar a una solicitud
-                window.location.href = "./solicitudes.php";
+                window.location.href = "./solicitudes_enviadas.php";
             } else if (data.icon === 'error') {
                 Swal.fire({
                     title: data.status,

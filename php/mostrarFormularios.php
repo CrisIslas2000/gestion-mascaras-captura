@@ -1,10 +1,11 @@
 <?php
 require('../db/connection.php');
+session_start();
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $dataRs = array();
     try {
-        $query = "SELECT * FROM cat_tramites_formulario ct ORDER BY ct.id_cat_tramite_formulario ASC";
-        $result = pg_query($connection, $query);
+        $query = "SELECT * FROM cat_tramites_formulario ct WHERE ct.id_cat_estructura = $1 WHERE borrado = ORDER BY ct.id_cat_tramite_formulario ASC";
+        $result = pg_query_params($connection, $query, array($_SESSION['id_cat_estructura']));
         if (!$result) {
             throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
         }
@@ -54,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         try {
             $id_campo = $_POST['id_campo'];
             /* Obtener datos para llenar el selector de las mascaras */
-            $query = "DELETE FROM datoscampos WHERE id_datos_campos = ($1)";
+            $query = "UPDATE datoscampos SET borrado = '1' WHERE id_datos_campos = ($1)";
             $result = pg_query_params($connection, $query, array($id_campo));
 
             if (!$result) {

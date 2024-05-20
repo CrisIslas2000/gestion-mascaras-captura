@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Crear un nuevo objeto URLSearchParams con la cadena de consulta
     let params = new URLSearchParams(queryString);
     // Obtener el valor del parámetro "parametro"
-    const id_form = params.get('id_form');
+    const id_form = params.get('form');
 
     const btnAgregar_campo = document.getElementById('agregar-campo');
     const btnEditar_campo = document.getElementById('editar-campo');
@@ -36,8 +36,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('#tablaCampos').on('click', '.btnEliminar', function (e) {
         e.preventDefault();
-        // Obtener el id de la fila
-        eliminarCampo($(this).data('id'));
+        Swal.fire({
+            title: 'Eliminar Campo',
+            text: '¿Seguro(a) que desea elimnar el campo?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#E0E0E0',
+            cancelButtonColor: '#6E6E6E',
+            confirmButtonText: 'Sí',
+            cancelButtonText: 'No',
+            customClass: {
+                confirmButton: 'text-black' // Agrega la clase personalizada al botón de cancelar
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Obtener el id de la fila
+                eliminarCampo($(this).data('id'));
+            }
+        });
+        return;
 
     });
 
@@ -57,13 +74,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Agregar evento de clic al botón de eliminar fuera del bucle forEach
     btnEliminar_campo.addEventListener('click', (e) => {
         e.preventDefault();
-        eliminarCampo(id_datos_campo);
-        let divAEliminar = document.getElementById(id_datos_campo); // Obtener el div por su ID
-        if (divAEliminar) { // Verificar si se encontró un div con el ID proporcionado
-            divAEliminar.parentNode.removeChild(divAEliminar); // Eliminar el div del DOM
-        }
+        Swal.fire({
+            title: 'Eliminar Campo',
+            text: '¿Seguro(a) que desea elimnar el campo?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#E0E0E0',
+            cancelButtonColor: '#6E6E6E',
+            confirmButtonText: 'Sí',
+            cancelButtonText: 'No',
+            customClass: {
+                confirmButton: 'text-black' // Agrega la clase personalizada al botón de cancelar
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                eliminarCampo(id_datos_campo);
+                let divAEliminar = document.getElementById(id_datos_campo); // Obtener el div por su ID
+                if (divAEliminar) { // Verificar si se encontró un div con el ID proporcionado
+                    divAEliminar.parentNode.removeChild(divAEliminar); // Eliminar el div del DOM
+                }
+            }
+        });
+        return;
     });
-    
+
     btnEditar_campo.addEventListener('click', (e) => {
         e.preventDefault();
         editarCampo(id_datos_campo);
@@ -135,9 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         nuevoDiv.classList.add("border", "rounded"); // Si necesitas añadir más clases adicionales
 
                         nuevoDiv.innerHTML = `
-                            <h4>${datos.titulo_campo}</h4>
-                            <p>${datos.texto_tag}</p>
-                            <p>${datos.texto_columnas}</p>
+                            <h5 class="m-0 mt-1">${datos.titulo_campo}</h5>
+                            <p class="m-0">${datos.texto_tag}</p>
+                            <p class="m-0">${datos.texto_columnas}</p>
                         `;
 
                         vista_previa.appendChild(nuevoDiv);
@@ -162,14 +196,24 @@ document.addEventListener('DOMContentLoaded', () => {
             "ajax": {
                 "url": "/mascarasCaptura/php/mostrarCamposTabla.php",
                 "type": "GET", // Especifica el método GET
-                "data": function(d) {
+                "data": function (d) {
                     // Agrega parámetros GET aquí si es necesario
                     d.id_form = id_form; // Ejemplo de parámetro
                 }
             },
+            "pagingType": "full_numbers",
             "language": {
                 "url": "./Datatables/es-MX.json",
+                "paginate": {
+                    "first": "‹",
+                    "previous": "«",
+                    "next": "»",
+                    "last": "›"
+                }
             },
+            "lengthMenu": [
+                [10, 15, 25, -1], [10, 15, 25, 'Todos']
+            ],
             "columns": [
                 { "data": "tipo_campo" },
                 { "data": "titulo_campo" },
@@ -182,8 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     "targets": -1, // Última columna
                     "render": function (data, type, row) {
                         return `
-                            <button class="btn btn-primary btnEditar" data-id="${data}" data-bs-toggle="modal" data-bs-target="#modalFormulario">Editar</button>
-                            <button class="btn btn-danger btnEliminar" data-id="${data}">Eliminar</button>
+                            <button class="btn btn-secondary btnEditar" data-id="${data}" data-bs-toggle="modal" data-bs-target="#modalFormulario">Editar</button>
+                            <button class="btn btn-secondary btnEliminar bt-color-secondary" data-id="${data}">Eliminar</button>
                         `;
                     },
                     "orderable": false // Evita que se ordene por esta columna
@@ -404,4 +448,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // Función para obtener el ID original desde el hash
+    function obtenerIdDesdeHash(hash) {
+        // Esta función debería realizar una solicitud al servidor
+        // para obtener el ID original correspondiente al hash
+        // Aquí simularemos esa solicitud con un console.log()
+        console.log("Solicitando ID original para el hash:", hash);
+        // Simulamos una respuesta del servidor
+        return "ID_original_correspondiente_al_hash";
+    }
+
 });

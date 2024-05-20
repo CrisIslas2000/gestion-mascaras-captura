@@ -15,7 +15,10 @@ if (!isset($_SESSION["nombre_completo"])) {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles/style_modal.css">
+    <link rel="stylesheet" href="./styles/custom.css">
     <link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
+    <link href="./dataTables/datatables.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
     <title>Mascaras captura</title>
 </head>
@@ -75,47 +78,83 @@ if (!isset($_SESSION["nombre_completo"])) {
             </div>
         </nav>
     <?php } ?>
-    <div class="container  p-3 mt-2 fw-bold">
-        <div class='row mb-3'>
-
-            <div class="d-flex gap-5 justify-content-around bg-dark bg-body-tertiary rounded-3">
-                <label id="nombreUsuario" class="text-black">Nombre de usuario</label>
-                <label id="dependenciaUsuario" class="text-black">Dependencia</label>
+    <div class="container p-3 mt-2">
+        <div class='row mb-3  fw-bold'>
+            <div class="d-flex justify-content-around  rounded-3">
+                <label class="text-black"><?php echo $_SESSION["nombre_completo"]; ?></label>
+                <label class="text-black"><?php echo $_SESSION["nombre_estructura"]; ?></label>
             </div>
-
-            <div class="d-flex flex-column align-items-center p-2 mt-3">
-                <div class="col-lg-5 col-md-5 col-sm-12 mb-2 d-flex flex-column">
-                    <label for="txtAsunto" id="" class="form-label text-center">Asunto</label>
-                    <textarea rows="4" name="txtAsunto" id="txtAsunto" class="form-control rounded-4"></textarea>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-12 mb-2 d-flex flex-column">
-                    <label for="txtfechaVencimiento" id="" class="form-label text-center">Fecha de vencimiento</label>
-                    <input type="date" id="txtfechaVencimiento" name="txtfechaVencimiento" class="form-control text-center" />
-                </div>
+        </div>
+        <div class="row mb-3  fw-bold">
+            <div class="col-9  justify-content-center">
+                <h1>Tickets turnados</h1>
+            </div>
+            <div class="col-3 justify-content-end ">
+                <button class="btn btn-outline-secondary bi bi-bar-chart-line shadow"></button>
             </div>
         </div>
 
-        <h1 class="text-center text-uppercase">Mascara de captura</h1>
-        <p></p>
-
-        <div class="d-flex justify-content-center">
-            <div class="d-flex flex-column justify-content-center">
-                <label for="select-formulario" class="text-center">Selecciona una opción</label>
-                <select id="select-formulario" class="form-select">
-                    <option class="text-center" default value=0>Selecciona un formulario</option>
-                </select>
-            </div>
+        <div class="row justify-content-center">
+            <table id="tablaSolicitudes" class="table table-striped" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Asunto</th>
+                        <th>Dirección</th>
+                        <th>Fecha</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
-
-        <!-- Aqui se mostraran las mascaras de captura dinamicamente -->
-        <form id="form-content" class=" row mt-3 "></form>
-        <!-- form-control text-center -->
-
     </div>
+    <!-- Modal para turnar -->
+    <!-- <div class="modal fade" id="modal-turnar" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Turnar solicitud</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-body myModal">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class=" col-xl-6 col-lg-6 col-md-6 col-sm-12">
+                                    <div class="row mb-3" id="mostrarTurnos">
+
+                                    </div>
+                                </div>
+                                <div class=" col-xl-6 col-lg-6 col-md-6 col-sm-12">
+                                    <div class="row mb-3">
+                                        <div class="col-sm-12 col-md-10 col-lg-10">
+                                            <label for="select-turnar" class="text-center">Persona a turnar:</label>
+                                            <select name="select-turnar" id="select-turnar" class="form-select">
+                                                <option default value=0>Selecione persona a turnar</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-12 col-md-10 col-lg-10">
+                                            <button type="button" class="btn btn-secondary" id="btnTurnar-solicitud">Turnar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div> -->
     <script src="./bootstrap/bootstrap.bundle.min.js"></script>
     <script src="./sweetAlert/sweetalert2@11.js"></script>
     <script src="./jquery/jquery-3.7.1.min.js"></script>
-    <script src="./Js/mascaras-dinamicas.js"></script>
+    <script src="./dataTables/datatables.min.js"></script>
+    <script src="./Js/solicitudes_turnadas.js"></script>
 </body>
 
 </html>

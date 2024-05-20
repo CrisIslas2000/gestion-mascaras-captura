@@ -1,5 +1,8 @@
 <?php
 require('../db/connection.php');
+
+date_default_timezone_set('America/Mexico_City');
+session_start();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $camposVacios = array();
@@ -42,7 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Agregamos el id de las estructuras al POST
+
+    // Agregamos el id de las estructuras y de usuario al POST
     $_POST['id_cat_estructura'] = $id_estructura;
 
     // Eliminamos los select-nivel, ya que los obtuvimos
@@ -64,14 +68,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        // Obtener el id de mascara de captura
-        // $mascaraCaptura = $_POST['mascaraCaptura'];
+
         // Obtener el id de la estructura
+        if ($_SESSION['id_cat_user']) {
+            $id_user = $_SESSION['id_cat_user'];
+        }
+        $mascaraCaptura = $_POST['mascaraCaptura'];
+        $fec_registro = date("Y-m-d");
+        $fec_vencimiento = $_POST['txtfechaVencimiento'];
+        $asunto = $_POST['txtAsunto'];
         $id_cat_estructura = $_POST['id_cat_estructura'];
 
         /* Buscar que exista en la tabla de tipoFormulario */
-        $sqlCheckTipoFormulario = "SELECT name_estructura from cat_estructuras where id_cat_estructura = $1";
-        $resultCheckTipoFormulario = pg_query_params($connection, $sqlCheckTipoFormulario, array($id_cat_estructura));
+        $sqlCheckTipoFormulario = "SELECT name_tramite from cat_tramites_formulario where id_cat_tramite_formulario = $1;";
+        $resultCheckTipoFormulario = pg_query_params($connection, $sqlCheckTipoFormulario, array($mascaraCaptura));
 
         /* Si no existe mandar respuesta */
         if (pg_num_rows($resultCheckTipoFormulario) == 0) {
@@ -86,10 +96,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         /* Obtener el nombre del formulario */
-        $nombre_mascara = pg_fetch_assoc($resultCheckTipoFormulario)['name_estructura'];
+        $nombre_mascara = pg_fetch_assoc($resultCheckTipoFormulario)['name_tramite'];
+
+        $sqlInsertSol = "INSERT INTO reg_solicitudes_tramite (
+            id_cat_user, id_cat_tramite_formulario, fec_registro, fec_vencimiento, 
+            asunto, id_cat_estructura, referencia_tabla) 
+            VALUES ( $1, $2, $3, $4, $5, $6, $7) RETURNING id_reg_solicitudes;";
+        $resultInsertSol = pg_query_params($connection, $sqlInsertSol, array(
+            $id_user, $mascaraCaptura, $fec_registro, $fec_vencimiento, $asunto, $id_cat_estructura, $nombre_mascara
+        ));
+
+        if (!$resultInsertSol) {
+            throw new Exception("Error al consltar ultimo id insertado: " . pg_last_error($connection));
+            exit;
+        }
+        $rowInsertoSol = pg_fetch_assoc($resultInsertSol); // Obtenemos el resultado de la consulta
+        $ultimoId_solicitud = $rowInsertoSol['id_reg_solicitudes']; // Cambiado a id_reg_solicitudes
+
+        unset($_POST['txtfechaVencimiento']);
+        unset($_POST['txtAsunto']);
+        unset($_POST['id_cat_estructura']);
 
         /* Verificar si ya existe una tabla para la mascara de captura */
-        $sqlCheckTable = "select table_name from information_schema.tables where table_name = $1";
+        $sqlCheckTable = "SELECT table_name from information_schema.tables where table_name = $1";
         $resultSqlCheckTable = pg_query_params($connection, $sqlCheckTable, array($nombre_mascara));
 
         if (!$resultSqlCheckTable) {
@@ -98,11 +127,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         /* Si la tabla no existe, CREARLA */
         if (pg_num_rows($resultSqlCheckTable) == 0) {
-            $sqlCreateTable = "CREATE TABLE $nombre_mascara (id_$nombre_mascara 
-                SERIAL PRIMARY KEY, id_cat_tramite_formulario int, id_cat_estructura int, id_cat_status int DEFAULT 1, fec_registro DATE DEFAULT CURRENT_DATE,
-                foreign key (id_cat_tramite_formulario) references cat_tramites_formulario (id_cat_tramite_formulario), 
-                foreign key (id_cat_estructura) references cat_estructuras (id_cat_estructura),
-                foreign key (id_cat_status) references cat_status (id_cat_status));";
+            $sqlCreateTable = "CREATE TABLE $nombre_mascara (
+                id SERIAL PRIMARY KEY, id_cat_tramite_formulario int, 
+                foreign key (id_cat_tramite_formulario) references cat_tramites_formulario (id_cat_tramite_formulario))";
             $resultSqlCreateTable = pg_query($connection, $sqlCreateTable);
             if (!$resultSqlCreateTable) {
                 throw new Exception("Error al crear la tabla: " . pg_last_error($connection));
@@ -153,14 +180,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Agregar las columnas dinámicamente si NO existen */
         foreach ($registrosMascara as $clave => $valor) {
-            if ($clave !== 'mascaraCaptura' && $clave !== 'id_cat_estructura') {
+            if ($clave !== 'mascaraCaptura') {
                 $nombreColumna = strtolower(pg_escape_string($clave));
             }
-            // if ($clave !== 'mascaraCaptura') {
-            //     $nombreColumna = strtolower(pg_escape_string($clave));
-            // } else if ($clave !== 'id_cat_estructura') {
-            //     $nombreColumna = strtolower(pg_escape_string($clave));
-            // }
             /* Verificar si la columna existe en la tabla */
             if (!in_array($nombreColumna, $columnasExistentes)) {
                 /* Obtener tipo de dato para la columna */
@@ -177,9 +199,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         /* Insertar datos en la tabla correspondiente */
-        $sqlInsert = "INSERT INTO $nombre_mascara (id_cat_tramite_formulario, id_cat_estructura, ";
+        $sqlInsert = "INSERT INTO $nombre_mascara (id_cat_tramite_formulario, ";
         foreach ($registrosMascara as $clave => $valor) {
-            if ($clave !== 'mascaraCaptura' && $clave !== 'id_cat_estructura') { // Evita agregar 'id_cat_estructura' dos veces
+            if ($clave !== 'mascaraCaptura') { // Evita agregar 'id_cat_estructura' dos veces
                 $sqlInsert .= pg_escape_string($clave) . ",";
             }
         }
@@ -187,26 +209,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Agregar el valor correspondiente al id_cat_tramite_formulario */
         $sqlInsert .= "'" . pg_escape_string($registrosMascara['mascaraCaptura']) . "',";
-        $sqlInsert .= "'" . pg_escape_string($registrosMascara['id_cat_estructura']) . "',";
         /* Agregar los valores a los demás campos */
         foreach ($registrosMascara as $clave => $valor) {
-            if ($clave !== 'mascaraCaptura' && $clave !== 'id_cat_estructura') { // Evita agregar 'id_cat_estructura' dos veces
+            if ($clave !== 'mascaraCaptura') { // Evita agregar 'id_cat_estructura' dos veces
                 $sqlInsert .= "'" . pg_escape_string($valor) . "',";
             }
         }
-        $sqlInsert = rtrim($sqlInsert, ",") . ")";
+        $sqlInsert = rtrim($sqlInsert, ",") . ") RETURNING id";
         $resultSqlInsert = pg_query($connection, $sqlInsert);
         if (!$resultSqlInsert) {
             throw new Exception("Error al guardar los datos: " . pg_last_error($connection));
             exit;
         }
+        $rowInsert = pg_fetch_assoc($resultSqlInsert); // Obtenemos el resultado de la consulta
+        $ultimoId_tramite = $rowInsert["id"]; // Cambiado a id_reg_solicitudes
+
+        // Actualizar los registros
+        $sqlUpdate = "UPDATE reg_solicitudes_tramite SET no_tramite_referencia = ($1) WHERE id_reg_solicitudes = ($2)";
+        $resultUpdate = pg_query_params($connection, $sqlUpdate, array($ultimoId_tramite, $ultimoId_solicitud));
+
+        if (!$resultUpdate) {
+            // Manejar el error si la actualización falla
+            throw new Exception("Error al agregar la columna $nombreColumna: " . pg_last_error($connection));
+            exit;
+        }
+
         header('Content-Type: application/json');
         echo json_encode(
             array(
                 //'status' => 200,
                 'msg' => 'Información guardada correctamente',
                 'icon' => 'success',
-                'status' => 'Hecho!'
+                'status' => '¡Hecho!'
             )
         );
 
@@ -225,5 +259,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )
         );
         return;
+    }
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $operacionGET = $_GET['operacion'];
+    if ($operacionGET === 'enviarCorreo') {
+        $dataRs = array();
+        try {
+
+            // Incluye el archivo enviar_correo.php
+            require('envioCorreo.php');
+
+            $asunto = "Solicitud " . $_GET['asunto'];
+            $mensaje = 'Se ha devuelto la solicitud con el siguiente aunto: <br>' . $_GET['mensaje'];
+            $form = $_GET['form'];
+
+            $sql = "SELECT cu.email_user from cat_tramites_formulario ctf
+                inner join  cat_user cu on cu.id_cat_user = ctf.id_cat_user 
+                where ctf.id_cat_tramite_formulario = $1;";
+            $result = pg_query_params($connection, $sql, array($form));
+            if (!$result) {
+                throw new Exception("Error al consultar correo: " . pg_last_error($connection));
+                exit;
+            }
+
+            // Obtener el email 
+            $row = pg_fetch_assoc($result);
+            $destinatario = $row['email_user']; 
+    
+
+            $correoEnviado = enviarCorreo($destinatario, $asunto, $mensaje);
+            // Envía el correo
+            if ($correoEnviado) {
+                header('Content-Type: application/json');
+                $data = array(
+                    'msg' => 'Información guardada correctamente',
+                    'icon' => 'success',
+                    'status' => '¡Hecho!',
+                );
+                echo json_encode($data);
+                return;
+            } else {
+                header('Content-Type: application/json');
+                $data = array(
+                    'msg' => 'Correo no enviado',
+                    'icon' => 'error',
+                    'status' => 'No se pudo enviar el correo!',
+                );
+                echo json_encode($data);
+                return;
+            }
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            $data = array(
+                'msg' => 'Error al insertar los datos',
+                'error' => $e->getMessage()
+            );
+            echo json_encode($data);
+            return;
+        }
     }
 }

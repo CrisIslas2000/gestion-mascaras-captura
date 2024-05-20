@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             /* Variable para guardar los registros */
             $data = array();
 
-            $sqlNombreMascara = "select name_tramite from cat_tramites_formulario where id_cat_tramite_formulario = $1";
+            $sqlNombreMascara = "SELECT name_tramite from cat_tramites_formulario where id_cat_tramite_formulario = $1";
             $resultSqlNombreMascara = pg_query_params($connection, $sqlNombreMascara, array($tipo_formulario));
             if (!$resultSqlNombreMascara) {
                 throw new Exception("Error al obtener el nombre de la mascara: " . pg_last_error($connection));
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 exit;
             }
 
-            $nombreMascara = pg_fetch_assoc($resultSqlNombreMascara)['nombre_formulario'];
+            $nombreMascara = pg_fetch_assoc($resultSqlNombreMascara)['name_tramite'];
 
             // Obtener los nombres de todas las columnas de la tabla
             $queryGetColumns = "SELECT column_name FROM information_schema.columns WHERE table_name = '$nombreMascara'";

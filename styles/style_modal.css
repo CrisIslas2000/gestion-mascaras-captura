@@ -8,3 +8,14 @@
   /* Estilos al pasar el puntero sobre los elementos <div> */
   transform: scale(1.02); /* Aumenta el tamaño del elemento al 110% */
 }
+
+#mostrarTurnos > div {
+  /* Estilos para los elementos <div> que son hijos directos de #vistaPrevia */
+  cursor: pointer;
+  transition: transform 0.2s ease; /* Agrega una transición suave */
+}
+
+#mostrarTurnos > div:hover {
+/* Estilos al pasar el puntero sobre los elementos <div> */
+transform: scale(1.02); /* Aumenta el tamaño del elemento al 110% */
+}

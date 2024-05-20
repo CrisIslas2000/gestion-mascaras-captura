@@ -32,6 +32,8 @@
             $email = $_POST['txt_email'];
             $password = $_POST['txt_password'];
             $password2 = $_POST['txt_password2'];
+            $rol = $_POST['rol'];
+            $id_direcion = $_POST['id_direccion'];
 
             $sql = "SELECT * FROM cat_user WHERE email_user = $1 ;";
             $result = pg_query_params($connection, $sql, array($email));
@@ -65,8 +67,8 @@
                     // Generar el hash de la contraseña usando bcrypt
                     $hashPassword = password_hash($password, PASSWORD_DEFAULT);
 
-                    $sqlInsert = "INSERT INTO cat_user ( email_user, password_user, id_cat_estructura, fec_registro, nombre_completo ) VALUES ( $1, $2, $3, $4, $5 );";
-                    $resultInsert = pg_query_params($connection, $sqlInsert, array( $email, $hashPassword, $id_estructura, $fecha_actual, $nombre ));
+                    $sqlInsert = "INSERT INTO cat_user ( email_user, password_user, id_cat_estructura, fec_registro, nombre_completo, rol_user, direccion_padre ) VALUES ( $1, $2, $3, $4, $5, $6, $7 );";
+                    $resultInsert = pg_query_params($connection, $sqlInsert, array( $email, $hashPassword, $id_estructura, $fecha_actual, $nombre, $rol, $id_direcion ));
 
                     if (!$resultInsert){
                         throw new Exception("Error al insertar datos" . pg_last_error($connection));
@@ -113,7 +115,105 @@
             );
             return;
         }
+    } else if ($_SERVER['REQUEST_METHOD'] === 'GET'){
+        $operacionGET = $_GET['operacion'];
+        if ($operacionGET === 'obtenerDependencia') {
+            $dataDependencia = array();
+            try {
+                /* Obtener datos para llenar el selector de las mascaras */
+                $query = "SELECT * FROM cat_estructuras where nivel = $1 or nivel = $2 order by id_cat_estructura ASC;";
+                $result = pg_query_params($connection, $query, array( 12, 13 ));
+                if (!$result) {
+                    throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
+                }
+    
+                while ($row = pg_fetch_array($result)) {
+                    $dataDependencia[] = array(
+                        'id_cat_estructura' => $row['id_cat_estructura'],
+                        'nombre_estructura' => $row['nombre']
+                    );
+                }
+                $countRows = count($dataDependencia);
+                if ($countRows <= 0) {
+                    header('Content-Type: application/json');
+                    $data = array(
+                        'msg' => 'No hay datos para mostrar'
+                    );
+                    echo json_encode($data);
+                    return;
+                }
+
+                /* Enviar resultado */
+                header('Content-Type: application/json');
+                $data = array(
+                    'dependencia' => $dataDependencia
+                );
+                echo json_encode($data);
+                return;
+            } catch (Exception $e) {
+                header('Content-Type: application/json');
+                $data = array(
+                    'msg' => 'Error al realizar la consulta',
+                    'error' => $e->getMessage()
+                );
+                return;
+            }
+        } elseif ($operacionGET === 'obtenerEstructura') {
+            try{
+                $id_estructura = $_GET['id_estructura'];
+                $dataArea = array();
+                /* Obtener datos para llenar el selector de las mascaras */
+                $query = "WITH RECURSIVE estructura_recursiva AS (
+                    select id_cat_estructura, estructura_padre, nivel, nombre
+                    from cat_estructuras
+                    where id_cat_estructura = $1
+                    UNION ALL
+                    select ce.id_cat_estructura, ce.estructura_padre, ce.nivel, ce.nombre 
+                    from cat_estructuras ce
+                    join estructura_recursiva r ON r.id_cat_estructura = ce.estructura_padre
+                    where ce.nivel < $2
+                )
+                select id_cat_estructura, estructura_padre, nivel, nombre 
+                from estructura_recursiva order by nivel desc;";
+                $result = pg_query_params($connection, $query, array($id_estructura, 14));
+                if (!$result) {
+                    throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
+                }
+    
+                while ($row = pg_fetch_array($result)) {
+                    $dataArea[] = array(
+                        'id_cat_estructura' => $row['id_cat_estructura'],
+                        'nombre_estructura' => $row['nombre']
+                    );
+                }
+                $countRows = count($dataArea);
+                if ($countRows <= 0) {
+                    header('Content-Type: application/json');
+                    $data = array(
+                        'msg' => 'No hay datos para mostrar'
+                    );
+                    echo json_encode($data);
+                    return;
+                }
+            
+                /* Enviar resultado */
+                header('Content-Type: application/json');
+                $data = array(
+                    'area' => $dataArea
+                );
+                echo json_encode($data);
+                return;
+            } catch (Exception $e) {
+                header('Content-Type: application/json');
+                $data = array(
+                    'msg' => 'Error al realizar la consulta',
+                    'error' => $e->getMessage()
+                );
+                return;
+            }
+        }
     }
+    
     
     function validarContra($password, $password2){
         if($password === $password2){

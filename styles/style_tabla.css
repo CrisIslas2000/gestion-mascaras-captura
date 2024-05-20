@@ -69,3 +69,12 @@
     border: 1px solid #ddd; /* Borde gris para las celdas */
     padding: 8px; /* Espaciado interno de las celdas */
 }
+
+#tablaTurnos {
+    margin: 0 auto;
+    float: none;
+}
+
+.dataTables_paginate .paginate_button {
+    color: gray;
+}

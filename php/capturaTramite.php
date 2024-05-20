@@ -4,6 +4,8 @@
     date_default_timezone_set('America/Mexico_City');
     // Obtiene la fecha y hora actual en México
     $fecha_actual = date('Y-m-d');
+
+    session_start();
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $operacion = $_POST['operacion'];
         $dataSelect = array();
@@ -11,7 +13,7 @@
             try {
                 $id_estructura = $_POST['id_estructura'];
                 //Validar que el nombre de variable ya exista en algun otro registro
-                $querySelect = "SELECT * FROM cat_estructuras ce WHERE ce.estructura_padre = ($1) AND ce.status = 1 AND ce.id_cat_estructura <> 1;";
+                $querySelect = "SELECT * FROM cat_estructuras ce WHERE ce.estructura_padre = ($1) AND ce.borrado = '0' AND ce.id_cat_estructura <> 1;";
                 $resultSelect  = pg_query_params($connection, $querySelect , array( $id_estructura ));
                 if (!$resultSelect ) {
                     throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
@@ -49,11 +51,87 @@
                 echo json_encode($data);
                 return;
             }
-        } elseif ( $operacion == 'llenarSelectTramite' ) {
+        } elseif ( $operacion == 'llenarSelectNivel3' ) {
+            try {
+                $id_estructura = $_POST['id_estructura'];
+
+                 if ($_SESSION['direccion_padre'] == 11) {
+                    //Validar que el nombre de variable ya exista en algun otro registro
+                    $querySelect = "SELECT * FROM cat_estructuras ce WHERE ce.estructura_padre = ($1) AND ce.borrado = '0' AND ce.id_cat_estructura <> 1;";
+                    $resultSelect  = pg_query_params($connection, $querySelect , array( $id_estructura ));
+                    if (!$resultSelect ) {
+                        throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
+                    }
+                    while ($rowSelect = pg_fetch_array($resultSelect)) {
+                        $dataSelect[] = array(
+                            'id_estructura' => $rowSelect['id_cat_estructura'],
+                            'nombre_estructura' => $rowSelect['nombre'], 
+                        );
+                    }
+                    $countRowsSelect = count($dataSelect);
+                    if ($countRowsSelect <= 0) {
+                        header('Content-Type: application/json');
+                        $data = array(
+                            'msg' => 'No existen registros',
+                            'status' => '404',
+                            'data' => $dataSelect
+                        );
+                        echo json_encode($data);
+                        return;
+                    }
+                
+                    header('Content-Type: application/json');
+                    $data = array(
+                        'data' => $dataSelect
+                    );
+                    echo json_encode($data);
+                    return;
+                } else if ($_SESSION['direccion_padre'] != 11) { // El 11 fijo porque es el id de la estrucura que no queremos que nos muestre
+                    //Validar que el nombre de variable ya exista en algun otro registro
+                    $querySelect = "SELECT * FROM cat_estructuras ce WHERE ce.estructura_padre = $1 and ce.id_cat_estructura != $2  AND ce.borrado = '0' AND ce.id_cat_estructura <> 1;";
+                    $resultSelect  = pg_query_params($connection, $querySelect , array( $id_estructura, 11)); //Se queda el 11 fijo porque es el id de la estrucura que no queremos que nos muestre
+                    if (!$resultSelect ) {
+                        throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
+                    }
+                    while ($rowSelect = pg_fetch_array($resultSelect)) {
+                        $dataSelect[] = array(
+                            'id_estructura' => $rowSelect['id_cat_estructura'],
+                            'nombre_estructura' => $rowSelect['nombre'], 
+                        );
+                    }
+                    $countRowsSelect = count($dataSelect);
+                    if ($countRowsSelect <= 0) {
+                        header('Content-Type: application/json');
+                        $data = array(
+                            'msg' => 'No existen registros',
+                            'status' => '404',
+                            'data' => $dataSelect
+                        );
+                        echo json_encode($data);
+                        return;
+                    }
+                
+                    header('Content-Type: application/json');
+                    $data = array(
+                        'data' => $dataSelect
+                    );
+                    echo json_encode($data);
+                    return;
+                } 
+            } catch (Exception $e) {
+                header('Content-Type: application/json');
+                $data = array(
+                    'msg' => 'Error al consultar los datos',
+                    'error' => $e->getMessage()
+                );
+                echo json_encode($data);
+                return;
+            }
+        }elseif ( $operacion == 'llenarSelectTramite' ) {
             try {
                 $id_estructura = $_POST['id_estructura'];
                 //Validar que el nombre de variable ya exista en algun otro registro
-                $querySelect = "SELECT * FROM cat_tramites_formulario ct WHERE ct.id_cat_estructura = ($1) AND ct.status = 1;";
+                $querySelect = "SELECT * FROM cat_tramites_formulario ct WHERE ct.id_cat_estructura = ($1) AND ct.borrado = '0';";
                 $resultSelect  = pg_query_params($connection, $querySelect , array( $id_estructura ));
                 if (!$resultSelect ) {
                     throw new Exception('No se pudo realizar la consulta' . pg_errormessage());

@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tipoCatalogo = $_POST['select-catalogo'];
 
         //Validar que no tenga el mismo nombre de variable que algun otro campo
-        $queryName = "SELECT * FROM datoscampos dc WHERE dc.nombre_campo = ($1) AND dc.id_datos_campos != ($2) AND dc.id_tipo_formulario = $id_form;";
+        $queryName = "SELECT * FROM reg_tramite_campos dc WHERE dc.nombre_campo = ($1) AND dc.id_datos_campos != ($2) AND dc.id_cat_tramite_formulario = $id_form;";
         $resultName = pg_query_params($connection, $queryName, array($variableCampo, $id_campo));
         if (!$resultName) {
             throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
@@ -60,23 +60,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $tipoCatalogo = ($tipoCatalogo === 'null') ? null : intval($tipoCatalogo);
         //si no existe algun registro con el nombre de variable ya actualizamos el registro
-        $queryUpdate = 'UPDATE datoscampos SET titulo_campo = ($1), nombre_campo = ($2), id_tags_campos = ($3), id_css_columnas = ($4), id_nombre_catalogo_datos = ($5) WHERE id_datos_campos = ($6);';
+        $queryUpdate = 'UPDATE reg_tramite_campos SET titulo_campo = ($1), nombre_campo = ($2), id_tags_campos = ($3), id_css_columnas = ($4), id_nombre_catalogo_datos = ($5) WHERE id_datos_campos = ($6);';
         $resultUpdate = pg_query_params($connection, $queryUpdate, array($tituloCampo, $variableCampo, $tipoCampo, $numColumnas, $tipoCatalogo, $id_campo));
         if (!$resultUpdate) {
             throw new Exception("No se pudo realizar la consulta", pg_errormessage());
         }
         //Obetenemos los datos para poder actualizar en patalla la vista previa
-        $queryCSS = "SELECT datoscampos.id_datos_campos AS id_campo, 
-        datoscampos.titulo_campo, 
+        $queryCSS = "SELECT reg_tramite_campos.id_datos_campos AS id_campo, 
+        reg_tramite_campos.titulo_campo, 
         tagscampos.texto AS texto_tag, 
         csscolumnas.cssclass AS clase_css, 
         csscolumnas.texto AS texto_columnas,
-        nombrecatalogodatos.nombre_catalogo as texto_catalogo
-        FROM datoscampos
-        LEFT JOIN tagscampos ON datoscampos.id_tags_campos = tagscampos.id_tags_campos
-        LEFT JOIN csscolumnas ON datoscampos.id_css_columnas = csscolumnas.id_css_columnas 
-        LEFT JOIN nombrecatalogodatos ON datoscampos.id_nombre_catalogo_datos  = nombrecatalogodatos.id_nombre_catalogo_datos
-        WHERE datoscampos.id_tipo_formulario = $id_form AND datoscampos.id_datos_campos =  ( $1 );";
+        cat_catalogos.nombre_catalogo as texto_catalogo
+        FROM reg_tramite_campos
+        LEFT JOIN tagscampos ON reg_tramite_campos.id_tags_campos = tagscampos.id_tags_campos
+        LEFT JOIN csscolumnas ON reg_tramite_campos.id_css_columnas = csscolumnas.id_css_columnas 
+        LEFT JOIN cat_catalogos ON reg_tramite_campos.id_nombre_catalogo_datos  = cat_catalogos.id_nombre_catalogo_datos
+        WHERE reg_tramite_campos.id_cat_tramite_formulario = $id_form AND reg_tramite_campos.id_datos_campos =  ( $1 );";
         $resultCSS = pg_query_params($connection, $queryCSS, array($id_campo)); //Se queda el valor de 3 por defecto en pruebas
         if (!$resultCSS) {
             throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = array(
             'msg' => 'Actualizado correctamente',
             'icon' => 'success',
-            'status' => 'Hecho!',
+            'status' => '¡Hecho!',
             'data' => $dataCSS
         );
         echo json_encode($data);
