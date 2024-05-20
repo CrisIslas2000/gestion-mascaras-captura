@@ -1,5 +1,6 @@
 <?php
 require('../db/connection.php');
+session_start();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dataRs = array();
     try {
@@ -61,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $tipoCatalogo = ($tipoCatalogo === 'null') ? null : intval($tipoCatalogo);
         /* Insertar datos en la base de datos */
-        $queryText = "SELECT * FROM sp_insertar_datos_campo($1, $2, $3, $4, $5, $6)";
-        $result = pg_query_params($connection, $queryText, array( $tituloCampo, $variableCampo, $tipoCampo, $numColumnas, $id_form, $tipoCatalogo )); //Se queda el valor de 3 por defecto en pruebas
+        $queryText = "SELECT * FROM sp_insertar_datos_campo($1, $2, $3, $4, $5, $6, $7)";
+        $result = pg_query_params($connection, $queryText, array( $tituloCampo, $variableCampo, $tipoCampo, $numColumnas, $id_form, $tipoCatalogo, $_SESSION["id_cat_user"])); //Se queda el valor de 3 por defecto en pruebas
 
         if (!$result) {
             throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
@@ -79,15 +80,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         }
 
-        header('Content-Type: application/json');
-        $data = array(
-            'msg' => 'Información guardada correctamente',
-            'icon' => 'success',
-            'status' => 'Hecho!',
-            'data' => $dataRs
-        );
-        echo json_encode($data);
-        return;
+        $countRows = count($dataRs);
+        if ($countRows <= 0) {
+            header('Content-Type: application/json');
+            $data = array(
+                'msg' => 'No se puede insertar campo',
+                'icon' => 'error',
+                'status' => 'Intente de  nuevo!',
+            );
+            echo json_encode($data);
+            return;
+        } else {
+            header('Content-Type: application/json');
+            $data = array(
+                'msg' => 'Información guardada correctamente',
+                'icon' => 'success',
+                'status' => '¡Hecho!',
+                'data' => $dataRs
+            );
+            echo json_encode($data);
+            return;
+        }
+        
     } catch (Exception $e) {
         header('Content-Type: application/json');
         $data = array(
@@ -97,4 +111,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode($data);
         return;
     }
-}
+} 

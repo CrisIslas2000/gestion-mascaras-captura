@@ -34,7 +34,10 @@
                         <a class="nav-link active" aria-current="page" href="formularios.php">Formularios</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="solicitudes.php">Solicitud</a>
+                        <a class="nav-link" href="solicitudes_enviadas.php">Enviados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="solicitudes_recibidas.php">Recibidos</a>
                     </li>
                 </ul>
             </div>
@@ -44,7 +47,7 @@
     <div class="container p-3 mt-2 fw-bold">
         <div class='row mb-3'>
             <div class="d-flex justify-content-around bg-dark bg-body-tertiary rounded-3">
-                <label class="text-black"><?php echo $_SESSION["nombre_completo"]; ?></label>
+                <label class="text-black" id="<?php echo $_SESSION["id_cat_user"]; ?>"><?php echo $_SESSION["nombre_completo"]; ?></label>
                 <label class="text-black"><?php echo $_SESSION["nombre_estructura"]; ?></label>
             </div>
         </div>

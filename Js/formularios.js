@@ -14,28 +14,34 @@ document.addEventListener('DOMContentLoaded', () => {
         editarFormulario($(this).data('id'));
     });
 
-    $('#tablaFormularios').on('click', '.btnRegistros', function (e) {
+    $('#tablaFormularios tbody').on('click', '.btnEliminar', function (e) {
         e.preventDefault();
-        registrosFormulario($(this).data('id'));
+        // Obtener el id de la fila
+        eliminarFormulario($(this).data('id'));
     });
 
-    $('#tablaFormularios').on('click', '.btnVer', function (e) {
-        e.preventDefault();
-        verFormulario($(this).data('id'));
-    });
+    // $('#tablaFormularios').on('click', '.btnRegistros', function (e) {
+    //     e.preventDefault();
+    //     registrosFormulario($(this).data('id'));
+    // });
+
+    // $('#tablaFormularios').on('click', '.btnVer', function (e) {
+    //     e.preventDefault();
+    //     verFormulario($(this).data('id'));
+    // });
 
     function insertarFormulario() {
         let formData = new FormData($("#crear-formulario")[0]);
+        formData.append("operacion", "insertarFormulario");
 
         //Enviar datos del formulario al script PHP
         $.ajax({
             type: 'POST',
-            url: '/mascarasCaptura/php/crearFormulario.php',
+            url: '/mascarasCaptura/php/formulario.php',
             data: formData,
             processData: false,
             contentType: false,
         }).done(function (data) {
-            console.log(data);
             if (data.icon != 'error') {
                 Swal.fire({
                     title: data.status,
@@ -65,12 +71,27 @@ document.addEventListener('DOMContentLoaded', () => {
         //Creamos nuevamente la tabla
         $('#tablaFormularios ').DataTable({
             "ajax": {
-                "url": "/mascarasCaptura/php/mostrarFormularios.php",
+                "url": "/mascarasCaptura/php/formulario.php",
                 "type": "GET", // Especifica el método GET
+                "data": function(d) {
+                    // Agregar parámetros personalizados al objeto de datos
+                    d.operacion = 'mostrarTramites'; // Aquí debes especificar el valor del ID del formulario que deseas enviar
+                }
+
             },
+            "pagingType": "full_numbers",
             "language": {
                 "url": "./Datatables/es-MX.json",
+                "paginate": {
+                    "first": "‹",
+                    "previous": "«",
+                    "next": "»",
+                    "last": "›"
+                }
             },
+            "lengthMenu": [
+                [5, 10, 15, 25, -1], [5, 10, 15, 25, 'Todos']
+            ],
             "columns": [
                 { "data": "id_tipo_formulario" },
                 { "data": "texto" },
@@ -85,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn btn-secondary btnEditar" data-id="${data}">Editar</button>
                             <button class="btn btn-secondary btnEliminar bt-color-secondary" data-id="${data}">Eliminar</button>
                         `;
-                        /* return `
+                        /*return `
                             <button class="btn btn-primary btnEditar" data-id="${data}">Editar</button>
                             <button class="btn btn-primary btnVer" data-id="${data}">Ver</button>
                             <button class="btn btn-primary btnRegistros" data-id="${data}">Registros</button>
@@ -102,17 +123,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function editarFormulario(id_formulario) {
         // Redireccionar a otra página en la misma carpeta
-        window.location.href = "crear-campos.php?id_form=" + id_formulario;
+        window.location.href = "crear-campos.php?form=" + id_formulario;
     }
 
-    function verFormulario(id_formulario) {
-        // Redireccionar a otra página en la misma carpeta
-        window.location.href = "captura-formulario.php?id_form=" + id_formulario;
+    function eliminarFormulario(id_formulario) {
+        Swal.fire({
+            title: 'Eliminar Formulario',
+            text: '¿Seguro(a) que desea eliminar el formulario?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#E0E0E0',
+            cancelButtonColor: '#6E6E6E',
+            confirmButtonText: 'Sí',
+            cancelButtonText: 'No',
+            customClass: {
+                confirmButton: 'text-black' // Agrega la clase personalizada al botón de cancelar
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/mascarasCaptura/php/formulario.php',
+                    data: { operacion: 'eliminarFormulario', id_formulario: id_formulario },
+                }).done(function (data) {
+                    if (data.icon != 'error') {
+                        Swal.fire({
+                            title: data.status,
+                            text: data.msg,
+                            icon: data.icon,
+                            confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                inicializarTabla();
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: data.status,
+                            text: data.msg,
+                            icon: data.icon,
+                            confirmButtonText: 'Ok'
+                        })
+                    }
+                })
+            }
+        });
+        return;
     }
 
-    function registrosFormulario(id_formulario) {
-        // Redireccionar a otra página en la misma carpeta
-        window.location.href = "registros.php?id_form=" + id_formulario;
-    }
-    
 });

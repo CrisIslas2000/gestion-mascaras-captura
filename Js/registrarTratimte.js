@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 Object.values(registro).forEach(function (valorColumna) {
                     contenidoTabla += '<td>' + valorColumna + '</td>';
                 });
-
+                console.log(registro);
                 // Agregar botón a cada fila
                 contenidoTabla += '<td><button id="' + registro.id + '" class="btn btn-primary btnSeleccion" data-bs-toggle="modal" data-bs-target="#modalEditar">Editar</button></td>';
 

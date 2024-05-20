@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let optionDefault = `<option default value="N/A">Seleccione una opción</option>`;
     let noAplica = `<option default value="N/A">N/A</option>`;
+
+    // // Mostramos el primer select 
+    // mostrarPrimerSelect();
+
     // Mostramos los primeros selct por default
     mostrarSelectNivel(select_nivel_1.value, 2);
     //Mostramos los tramites de acuerdo id_estructura
@@ -20,24 +24,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Opciones para llenar los select de forma dinamica de acuerdo a la eleccion
     select_nivel_2.addEventListener('change', (e) => {
+        deshabilitarSelect(3);
         let id_estructura = e.target.value;
         llenarSelectNivel(id_estructura, 3);
         llenarSelectTramite(id_estructura, select_nivel_1.value);
     });
 
     select_nivel_3.addEventListener('change', (e) => {
+        deshabilitarSelect(4);
         let id_estructura = e.target.value;
         llenarSelectNivel(id_estructura, 4);
         llenarSelectTramite(id_estructura, select_nivel_2.value);
     });
 
     select_nivel_4.addEventListener('change', (e) => {
+        deshabilitarSelect(5);
         let id_estructura = e.target.value;
         llenarSelectNivel(id_estructura, 5);
         llenarSelectTramite(id_estructura, select_nivel_3.value);
     });
 
     select_nivel_5.addEventListener('change', (e) => {
+        deshabilitarSelect(6);
         let id_estructura = e.target.value;
         llenarSelectNivel(id_estructura, 6);
         llenarSelectTramite(id_estructura, select_nivel_4.value);
@@ -49,10 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let selectValue;
+    let nombreTramite;
     /* Obtener el valor de la opción seleccionada */
     select_tramite.addEventListener('change', (e) => {
         selectValue = e.target.value;
 
+        let selectedOption = Array.from(select_tramite.options).find(option => option.value === selectValue);
+  
+        // Obtener el texto de la opción seleccionada
+        nombreTramite = selectedOption ? selectedOption.text : "";
+        
         /* Vaciar formulario */
         form_content.innerHTML = '';
 
@@ -100,118 +114,114 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('btnEnviar_tramite').addEventListener("click", (e) => {
                 e.preventDefault();
+                Swal.fire({
+                    title: 'Enviar Trámite',
+                    text: '¿Seguro(a) que desea enviar el trámite?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#E0E0E0',
+                    cancelButtonColor: '#6E6E6E',
+                    confirmButtonText: 'Sí',
+                    cancelButtonText: 'No',
+                    customClass: {
+                        confirmButton: 'text-black' // Agrega la clase personalizada al botón de cancelar
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let formData = new FormData(document.getElementById('form-content'));
+                        let asunto = document.getElementById("txtAsunto").value;
+                        let fecha_vencimiento = document.getElementById("txtfechaVencimiento").value;
 
-                let formData = new FormData(document.getElementById('form-content'));
-                let asunto = document.getElementById("txtAsunto").value;
-                let fecha_vencimiento = document.getElementById("txtfechaVencimiento").value;
+                        formData.append("txtAsunto", asunto);
+                        formData.append("txtfechaVencimiento", fecha_vencimiento);
+                        formData.append("mascaraCaptura", selectValue);
+                        formData.append("select_nivel_1", select_nivel_1.value);
+                        formData.append("select_nivel_2", select_nivel_2.value);
+                        formData.append("select_nivel_3", select_nivel_3.value);
+                        formData.append("select_nivel_4", select_nivel_4.value);
+                        formData.append("select_nivel_5", select_nivel_5.value);
+                        formData.append("select_nivel_6", select_nivel_6.value);
 
-                formData.append("txtAsunto", asunto);
-                formData.append("txtfechaVencimiento", fecha_vencimiento);
-                formData.append("mascaraCaptura", selectValue);
-                formData.append("select_nivel_1", select_nivel_1.value);
-                formData.append("select_nivel_2", select_nivel_2.value);
-                formData.append("select_nivel_3", select_nivel_3.value);
-                formData.append("select_nivel_4", select_nivel_4.value);
-                formData.append("select_nivel_5", select_nivel_5.value);
-                formData.append("select_nivel_6", select_nivel_6.value);
+                        // formData.forEach((data, index) => {
+                        //     console.log(index, ': ', data);
+                        // });
 
-                // formData.forEach((data, index) => {
-                //     console.log(index, ': ', data);
-                // });
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/mascarasCaptura/php/insertarDatos.php',
-                    data: formData,
-                    processData: false,
-                    contentType: false
-                }).done(function (data) {
-                    console.log(data)
-                    if (data.icon === 'success') {
-                        Swal.fire({
-                            title: data.status,
-                            text: data.msg,
-                            icon: data.icon,
-                            confirmButtonText: 'Ok'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // Recargar la página
-                                window.location.reload();
+                        $.ajax({
+                            type: 'POST',
+                            url: '/mascarasCaptura/php/insertarDatos.php',
+                            data: formData,
+                            processData: false,
+                            contentType: false
+                        }).done(function (data) {
+                            if (data.icon === 'success') {
+                                Swal.fire({
+                                    title: data.status,
+                                    text: data.msg,
+                                    icon: data.icon,
+                                    confirmButtonText: 'Ok'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        $.ajax({
+                                            method: 'GET',
+                                            url: '/mascarasCaptura/php/insertarDatos.php',
+                                            data: { operacion: 'enviarCorreo', form: selectValue , mensaje: asunto, asunto: nombreTramite }
+                                        }).done(function (data) {
+                                            if (data.icon == 'success') {
+                                                // Recargar la página
+                                                window.location.reload();   
+                                            }
+                                        });
+                                    }
+                                });
+                            } else if (data.icon === 'warning') {
+                                Swal.fire({
+                                    title: data.status,
+                                    text: data.msg,
+                                    icon: data.icon,
+                                    confirmButtonText: 'Ok'
+                                })
                             }
                         });
-                    } else if (data.icon === 'warning') {
-                        Swal.fire({
-                            title: data.status,
-                            text: data.msg,
-                            icon: data.icon,
-                            confirmButtonText: 'Ok'
-                        })
                     }
                 });
+                return;
             });
         });
     });
 
-    // btnEnviar_tramite.addEventListener('click', (e) => {
-    //     e.preventDefault(); // Prevenir el envío del formulario por defecto
-    //     let formData = new FormData($("#form-solicitud")[0]);
-    //     // Agregar datos adicionales, como la operación
-    //     formData.append('operacion', 'capturarForm');
-    //     // Enviar datos mediante AJAX
-    //     $.ajax({
-    //         type: 'POST',
-    //         url: '/mascarasCaptura/php/capturaTramite.php',
-    //         data: formData,
-    //         processData: false,
-    //         contentType: false,
-    //     }).done(function (data) {
-    //         if (data.icon === 'success') {
-    //             Swal.fire({
-    //                 title: data.status,
-    //                 text: data.msg,
-    //                 icon: data.icon,
-    //                 confirmButtonText: 'Ok'
-    //             }).then((result) => {
-    //                 if (result.isConfirmed) {
-    //                     // Recargar la página
-    //                     window.location.reload();
-    //                 }
-    //             });
-    //         } else if (data.icon === 'warning') {
-    //             Swal.fire({
-    //                 title: data.status,
-    //                 text: data.msg,
-    //                 icon: data.icon,
-    //                 confirmButtonText: 'Ok'
-    //             })
-    //         }
-    //     });
-    // });
-
-    function llenarSelectTramite(id_estructura, valoAnterior) {
-        if (id_estructura === "N/A") {
-            mostrarSelectTramite(valoAnterior);
-        } else {
-            mostrarSelectTramite(id_estructura);
-        }
-    }
-
     function mostrarSelectNivel(id_estructura, nivel) {
-        // Enviar datos mediante AJAX
-        $.ajax({
-            type: 'POST',
-            url: '/mascarasCaptura/php/capturaTramite.php',
-            data: { operacion: 'llenarSelectNivel', id_estructura: id_estructura },
-        }).done(function (dataSelect) {
-            if (dataSelect.data.length === 0) {
-                document.getElementById(`select-nivel-${nivel}`).disabled = true;
-                document.getElementById(`select-nivel-${nivel}`).innerHTML = noAplica;
-            } else {
-                dataSelect.data.forEach((select) => {
-                    document.getElementById(`select-nivel-${nivel}`).innerHTML += `<option value="${select.id_estructura}">${select.nombre_estructura}</option>`;
-                });
-            }
-        });
+        if (nivel == 3) {// Enviar datos mediante AJAX para rellenar los select con las estructuras de las dependencias
+            $.ajax({
+                type: 'POST',
+                url: '/mascarasCaptura/php/capturaTramite.php',
+                data: { operacion: 'llenarSelectNivel3', id_estructura: id_estructura },
+            }).done(function (dataSelect) {
+                if (dataSelect.data.length === 0) {
+                    document.getElementById(`select-nivel-${nivel}`).disabled = true;
+                    document.getElementById(`select-nivel-${nivel}`).innerHTML = noAplica;
+                } else {
+                    dataSelect.data.forEach((select) => {
+                        document.getElementById(`select-nivel-${nivel}`).innerHTML += `<option value="${select.id_estructura}">${select.nombre_estructura}</option>`;
+                    });
+                }
+            });
+        } else {
+            // Enviar datos mediante AJAX para rellenar los select con las estructuras de las dependencias
+            $.ajax({
+                type: 'POST',
+                url: '/mascarasCaptura/php/capturaTramite.php',
+                data: { operacion: 'llenarSelectNivel', id_estructura: id_estructura },
+            }).done(function (dataSelect) {
+                if (dataSelect.data.length === 0) {
+                    document.getElementById(`select-nivel-${nivel}`).disabled = true;
+                    document.getElementById(`select-nivel-${nivel}`).innerHTML = noAplica;
+                } else {
+                    dataSelect.data.forEach((select) => {
+                        document.getElementById(`select-nivel-${nivel}`).innerHTML += `<option value="${select.id_estructura}">${select.nombre_estructura}</option>`;
+                    });
+                }
+            });
+        }
     }
 
     function llenarSelectNivel(id_estructura, count) {
@@ -244,6 +254,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
+    }
+
+    function llenarSelectTramite(id_estructura, valorAnterior) {
+        if (id_estructura === "N/A") {
+            mostrarSelectTramite(valorAnterior);
+        } else {
+            mostrarSelectTramite(id_estructura);
+        }
+    }
+
+    function deshabilitarSelect(count) {
+        for (let i = count; i <= 6; i++) {
+            document.getElementById(`select-nivel-${i}`).disabled = true;
+            document.getElementById(`select-nivel-${i}`).innerHTML = noAplica;
+        }
     }
 
 });

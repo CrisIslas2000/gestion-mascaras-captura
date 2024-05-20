@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 FROM reg_tramite_campos dc
                 LEFT JOIN tagscampos tc ON dc.id_tags_campos = tc.id_tags_campos
                 LEFT JOIN csscolumnas cc ON dc.id_css_columnas = cc.id_css_columnas 
-                WHERE dc.id_cat_tramite_formulario = $id_form ORDER BY dc.id_datos_campos ASC;";
+                WHERE dc.id_cat_tramite_formulario = $id_form AND borrado = '0' ORDER BY dc.id_datos_campos ASC;";
             $result = pg_query($connection, $query);
             if (!$result) {
                 throw new Exception('No se pudo realizar la consulta' . pg_errormessage());

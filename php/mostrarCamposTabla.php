@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             FROM reg_tramite_campos dc
             LEFT JOIN tagscampos tc ON dc.id_tags_campos = tc.id_tags_campos
             LEFT JOIN csscolumnas cc ON dc.id_css_columnas = cc.id_css_columnas 
-            WHERE dc.id_cat_tramite_formulario = $id_form;";
+            WHERE dc.id_cat_tramite_formulario = $id_form AND borrado = '0';";
         $result = pg_query($connection, $query);
         if (!$result) {
             throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
@@ -59,8 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         try {
             $id_campo = $_POST['id_campo'];
             /* Obtener datos para llenar el selector de las mascaras */
-            $query = "DELETE FROM datoscampos WHERE id_datos_campos = ($1)";
-            $result = pg_query_params($connection, $query, array($id_campo));
+            $query = "UPDATE reg_tramite_campos SET borrado = $1 WHERE id_datos_campos = $2";
+            $result = pg_query_params($connection, $query, array('1',$id_campo));
 
             if (!$result) {
                 throw new Exception('No se pudo realizar la consulta' . pg_errormessage());
